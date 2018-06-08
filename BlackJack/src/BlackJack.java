@@ -1,3 +1,479 @@
+from tkinter import *
+from datetime import datetime
+import datetime
+import csv
+import os
+import pandas as pd
+
+
+
+global now
+global myExcelFile
+global date_format
+global writer_data
+
+
+
+
+
+date_format = "%m/%d/%Y"
+now = datetime.datetime.now()
+curYear = str(now.year)
+curMonth = str(now.month)
+curDay = str(now.day)
+curDate = curMonth + '/' + curDay + '/' + curYear
+counter = 0
+secondCounter =0
+thirdCounter = 0
+dataList = []
+
+
+
+if not os.path.exists('C:\\Users\\SXM037W\\PycharmProjects\\untitled\\' + 'Workers ' + curMonth + ' ' + curYear + '.csv'):
+       myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'a', newline='')
+       regHeaders = ['Full Name', 'Hire Date', 'Work Years', 'SLID', 'Password']
+       with myExcelFile as csvfile:
+           writer = csv.writer (csvfile)
+           writer.writerows ([regHeaders])
+
+
+
+def increment():
+    global counter
+    counter = counter + 1
+
+def secondCount():
+    global secondCounter
+    secondCounter = secondCounter + 1
+
+def thirdCount():
+    global thirdCounter
+    thirdCounter = thirdCounter + 1
+
+def check_list(arg):
+    for i in arg:
+        if arg.count(i) > 1:
+            print('Dup')
+
+def compareInput(specificData):
+
+    global thirdCounter
+
+    duplicateBool = False
+
+
+    myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r')
+    with myExcelFile as csvfile:
+        reader = csv.reader (csvfile, delimiter=',')
+        for row in reader:
+            if row == specificData:
+                duplicateBool = True
+                break
+
+    return duplicateBool
+
+
+def userLogin():
+
+    global entryName
+    global entryPassword
+    global loginWindow
+
+    loginWindow = Tk()
+    loginWindow.title('User Login')
+    labelName = Label(loginWindow, text='Username: ')
+    labelPassword = Label(loginWindow, text='Password: ')
+
+    labelName.grid(row = 1, sticky=W)
+    labelPassword.grid(row = 2, sticky=W)
+
+    entryName = Entry(loginWindow)
+    entryPassword = Entry(loginWindow, show='*')
+
+
+    entryName.grid(row=1, column=1)
+    entryPassword.grid(row=2, column=1)
+
+    enterButton = Button(loginWindow, text='Login', command=CheckLogin)
+    enterButton.grid (columnspan=2, sticky=W)
+
+
+    loginWindow.mainloop()
+
+
+
+def enterVacButton():
+    global totalHours
+
+    try:
+        totalHours = (int (enterPurchasedHours.get ()) + int (enterCarriedHours.get ()) + int (enterEarnedHours.get ()))
+        vacSubmit = True
+
+    except ValueError:
+
+        newWindowIM = Tk ()
+        newWindowIM.title ('Error')
+        newWindowIM.geometry ('300x300')
+        rlbl = Label (newWindowIM, text='\n Error - Integer only ')
+        rlbl.pack ()
+        vacSubmit = False
+
+
+    if vacSubmit and counter == 0:
+
+        userInputs = monthVariable.get() + '/' + dayVariable.get() + '/' + yearVariable.get()
+
+        increment()
+
+        regularHeaders = ['Name','Date Requested', 'Hire Date', 'Purchased Hours', 'Carried Over', 'Earned Hours', 'Total Hours']
+
+        #specificData = [userInputs, curDate, enterPurchasedHours.get(), enterCarriedHours.get(), enterEarnedHours.get(),totalHours, 'F']
+
+        hourData = [enterPurchasedHours.get(), enterCarriedHours.get(), enterEarnedHours.get()]
+
+        userInputLabel = Label (newRequestWindow, text=hourData)
+        userInputLabel.grid (row=7, sticky=S)
+
+        myExcelFile = open ('Test34' + str (now.month) + ' ' + str (now.year) + '.csv', 'a', newline='')
+        with myExcelFile as csvfile:
+            writer = csv.writer (csvfile)
+            writer.writerows ([hourData])
+
+
+    elif counter >= 1:
+        newWindowIM = Tk ()
+        newWindowIM.title ('Error')
+        newWindowIM.geometry ('300x300')
+        rlbl = Label (newWindowIM, text='\n Error - Hours already submitted ')
+        rlbl.pack ()
+
+def requestVacation():
+    newUserWindow.destroy()
+
+
+    global newRequestWindow
+    global enterCarriedHours
+    global enterEarnedHours
+    global enterPurchasedHours
+    global monthVariable
+    global dayVariable
+    global yearVariable
+    global enterVacation
+
+
+    newRequestWindow = Tk ()
+    newRequestWindow.title ('Request Vacation')
+    newRequestWindow.geometry ('500x500')
+
+    newHoursEarned = Label (newRequestWindow, text='Earned Hours:  ')
+    newCarriedHours = Label (newRequestWindow, text='Hours Carried Over: ')
+    newPurchasedHours = Label (newRequestWindow, text='Hours Purchased:  ')
+
+    newHoursEarned.grid (row=1, sticky=W)
+    newCarriedHours.grid (row=2, sticky=W)
+    newPurchasedHours.grid (row=3, sticky=W)
+
+    enterEarnedHours = Entry (newRequestWindow, width=12)
+    enterCarriedHours = Entry (newRequestWindow, width=12)
+    enterPurchasedHours = Entry (newRequestWindow, width=12)
+
+    enterEarnedHours.grid (row=1, column=2)
+    enterCarriedHours.grid (row=2, column=2)
+    enterPurchasedHours.grid (row=3, column=2)
+
+    enterVacation = Button (newRequestWindow, text='Submit', command=enterVacButton)
+    enterVacation.grid (row=4, column=2, columnspan=2, sticky=W)
+
+
+    monthFrame = Frame(newRequestWindow)
+    monthFrame.grid (column=0, row=8, sticky=(N, W, E, S))
+    monthFrame.columnconfigure (0, weight=1)
+    monthFrame.rowconfigure (0, weight=1)
+
+    dayFrame = Frame(newRequestWindow)
+    dayFrame.grid (column=2, row=8, sticky=(N, W, E, S))
+    dayFrame.columnconfigure (0, weight=1)
+    dayFrame.rowconfigure (0, weight=1)
+
+
+    yearFrame = Frame(newRequestWindow)
+    yearFrame.grid (column=4, row=8, sticky=(N, W, E, S))
+    yearFrame.columnconfigure (0, weight=1)
+    yearFrame.rowconfigure (0, weight=1)
+
+
+
+    theMonths = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+    theDays = range(1, 32)
+    theYears = range(now.year, now.year - 1, -1)
+
+
+    monthVariable = StringVar(newRequestWindow)
+    monthVariable.set('1')
+
+    dayVariable = StringVar(newRequestWindow)
+    dayVariable.set('1')
+
+    yearVariable = StringVar(newRequestWindow)
+    yearVariable.set(now.year)
+
+
+    actualMenu = OptionMenu (monthFrame, monthVariable, *theMonths)
+    Label (monthFrame, text="Select a month").grid (row=1, column=1)
+    actualMenu.grid (row=2, column=1)
+
+
+    actualMenu = OptionMenu(dayFrame, dayVariable, *theDays)
+    Label (dayFrame, text="Select a day").grid (row=1, column=1)
+    actualMenu.grid (row=2, column=1)
+
+    actualMenu = OptionMenu(yearFrame, yearVariable, *theYears)
+    Label (yearFrame, text="Select a year").grid (row=1, column=1)
+    actualMenu.grid (row=2, column=1)
+
+
+    newRequestWindow.mainloop ()
+
+def checkEmpty(emptyStr):
+    return bool(emptyStr and emptyStr.strip())
+
+def adminAccess():
+
+    global newAdminWindow
+    loginWindow.destroy()
+    newAdminWindow = Tk ()
+    newAdminWindow.title ('Admin')
+    newAdminWindow.geometry ('150x150')
+
+    createButton = Button (newAdminWindow, text='Create New User', command = createNewUser)
+    createButton.grid (columnspan=2, sticky=W)
+
+    remoButton = Button(newAdminWindow, text='Remove User')
+    remoButton.grid (columnspan=2, sticky=W)
+
+    newAdminWindow.mainloop()
+
+
+def regularAccess():
+    global newUserWindow
+    loginWindow.destroy ()
+    newUserWindow = Tk ()
+    newUserWindow.title ('Vacation Req')
+    newUserWindow.geometry ('350x350')
+
+    createButton = Button (newUserWindow, text='Request Vacation', command=requestVacation)
+    createButton.grid (columnspan=2, sticky=W)
+
+    newUserWindow.mainloop ()
+
+
+def CheckLogin():
+
+    if entryName.get() == "mo" and entryPassword.get () == "pass":
+        adminAccess()
+    elif entryName.get() == "te" and entryPassword.get () == "te":
+        regularAccess()
+
+    elif checkEmpty(entryName.get()) or checkEmpty(entryPassword.get()):
+        newWindowIM = Tk()
+        newWindowIM.title('Error')
+        newWindowIM.geometry('150x50')
+        rlbl = Label(newWindowIM, text='\n Invalid Login')
+        rlbl.pack()
+        newWindowIM.mainloop()
+
+    else:
+        newWindowIM = Tk ()
+        newWindowIM.title ('Error')
+        newWindowIM.geometry ('150x50')
+        rlbl = Label (newWindowIM, text='\n Invalid Login')
+        rlbl.pack ()
+        newWindowIM.mainloop ()
+
+def hasNumbers(inputString):
+    return any(char.isdigit() for char in inputString)
+
+
+def viewUserButton():
+    print(pd.options.display.max_colwidth)
+    pd.options.display.max_colwidth = 100000
+
+
+
+    df1 = pd.read_csv (
+        'C:\\Users\\SXM037W\\PycharmProjects\\untitled\\' + 'Workers ' + curMonth + ' ' + curYear + '.csv', names=['Name', 'Hire Date', 'Years Working', 'SLID', 'Password', ])
+
+
+    print (df1)
+    print(pd.options.display.max_colwidth)
+    pd.options.display.max_colwidth = 100000
+
+
+
+
+    viewUserWindow = Tk()
+    viewUserWindow.title('Current Users')
+
+    w = 600
+    h = 600
+    ws = viewUserWindow.winfo_screenwidth ()
+    hs = viewUserWindow.winfo_screenheight ()
+    x = (ws / 2) - (w / 2)
+    y = (hs / 2) - (h / 2)
+    viewUserWindow.geometry ('%dx%d+%d+%d' % (w, h, x, y))
+    labelPopulation = Label (viewUserWindow, text=df1.to_string(justify= 'center', line_width= 10))
+    labelPopulation.grid (row=10 , sticky=W)
+
+
+
+def submitButton():
+
+    global workingYears
+    global specificData
+
+
+    if hasNumbers(enterFN.get()):
+        newWindowIM = Tk ()
+        newWindowIM.title ('Error')
+        newWindowIM.geometry ('300x300')
+        rlbl = Label (newWindowIM, text='\n Error - Numerical Value for first name ')
+        rlbl.pack ()
+        canSubmit = False
+    else:
+        canSubmit = True
+
+
+    if hasNumbers(enterLN.get()):
+        rlbl = Label (newWindowIM, text='\n Error - Numerical Value for last name ')
+        rlbl.pack ()
+        canSubmit = False
+    else:
+        canSubmit = True
+
+    try:
+        dob = datetime.datetime.strptime (enterHD.get(), date_format)
+        canSubmit = True
+
+        lengthWorking = now - datetime.datetime.strptime(enterHD.get(), date_format)
+        workingYears = round((lengthWorking.days/365.0), 2)
+
+    except ValueError:
+
+        newWindowIM = Tk ()
+        newWindowIM.title ('Error')
+        newWindowIM.geometry ('300x300')
+        rlbl = Label (newWindowIM, text='\n Error - Incorrect date format or values ')
+        rlbl.pack ()
+        canSubmit = False
+
+    except:
+
+        rlbl = Label (newWindowIM, text='\n Error - Incorrect date entry ')
+        rlbl.pack ()
+        canSubmit = False
+
+    if canSubmit:
+
+        usersName =  enterFN.get().capitalize() + " " + enterLN.get().capitalize()
+        stringHD = enterHD.get()
+        if stringHD[0] =='0' and stringHD[3] == '0':
+            hireDate = stringHD[1:3] + stringHD[4:10]
+        elif stringHD[0] != '0' and stringHD[3] == '0':
+            hireDate = stringHD[0:3] + stringHD[4:10]
+        elif stringHD[0] == '0' and stringHD[3] != '0':
+            hireDate = stringHD[1:3] + stringHD[3:10]
+        else:
+            hireDate = stringHD[0:10]
+
+
+        specificData =  [usersName, hireDate,str(workingYears), enterSLID.get().upper(), enterPW.get()]
+        if not compareInput(specificData):
+
+            enterFN.delete (0, END)
+            enterLN.delete (0, END)
+            enterHD.delete (0, END)
+            enterSLID.delete (0, END)
+            enterPW.delete (0, END)
+            userInputLabel = Label (newUserWindow, text=usersName + ' successfully added.')
+            userInputLabel.grid (row=8, sticky=S)
+            myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'a', newline='')
+            with myExcelFile as csvfile:
+                writer = csv.writer (csvfile)
+                writer.writerows ([specificData])
+
+        else:
+            userInputLabel = Label (newUserWindow, text=usersName + ' not added - Duplicate.')
+            userInputLabel.grid (row=8, sticky=S)
+
+
+def createNewUser():
+
+    newAdminWindow.destroy()
+
+    global newUserWindow
+    global enterFN
+    global enterLN
+    global enterHD
+    global enterSLID
+    global enterPW
+    global newUserWindow
+
+    newUserWindow = Tk()
+    newUserWindow.title('Create New User')
+    newUserWindow.geometry('600x600')
+
+
+    newUserFN = Label(newUserWindow, text='First name: ')
+    newUserLN = Label(newUserWindow, text='Last name: ')
+    newUserHireM1 = Label(newUserWindow, text = 'Hire date (MM/DD/YYYY):')
+    newUserSLID = Label(newUserWindow, text = 'SLID:')
+    newUserPW = Label (newUserWindow, text='Password:')
+
+    newUserFN.grid (row=1, sticky=W)
+    newUserLN.grid (row=2, sticky=W)
+    newUserHireM1.grid (row=3, sticky=W)
+    newUserSLID.grid (row=4, sticky=W)
+    newUserPW.grid (row=5, sticky=W)
+
+    enterFN = Entry(newUserWindow, width = 12)
+    enterLN = Entry(newUserWindow, width = 12)
+    enterHD = Entry(newUserWindow, width = 12)
+    enterSLID = Entry(newUserWindow, width=12)
+    enterPW = Entry(newUserWindow, width=12)
+
+
+    enterFN.grid(row=1, column=2)
+    enterLN.grid(row=2, column=2)
+    enterHD.grid(row=3, column=2)
+    enterSLID.grid (row=4, column=2)
+    enterPW.grid (row=5, column=2)
+
+
+    enterButton = Button (newUserWindow, text='Submit', command = submitButton)
+    enterButton.grid(columnspan=2, sticky=SE)
+
+
+    viewButton = Button(newUserWindow, text = 'View current users', command = viewUserButton)
+    viewButton.grid(columnspan=2, sticky = SE)
+
+
+    newUserWindow.mainloop()
+
+
+
+userLogin()
+
+        
+        
+        
+        
+        
+        
+        
+        
+
+
+
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.Random;
