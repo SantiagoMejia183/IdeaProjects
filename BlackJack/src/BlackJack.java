@@ -1,8 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 from datetime import datetime
+from shutil import copyfile
 import datetime
-import re
 import csv
 import os
 import pandas as pd
@@ -23,9 +23,11 @@ secondCounter =0
 thirdCounter = 0
 dataList = []
 
+dirPath = 'C:\\Users\\SXM037W\\PycharmProjects\\untitled\\'
+os.chdir(dirPath)
 
 
-if not os.path.exists('C:\\Users\\SXM037W\\PycharmProjects\\untitled\\' + 'Workers ' + curMonth + ' ' + curYear + '.csv'):
+if not os.path.exists('Workers ' + curMonth + ' ' + curYear + '.csv'):
        myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'a', newline='')
 
        with myExcelFile as csvfile:
@@ -233,6 +235,12 @@ def requestVacation():
 def checkEmpty(emptyStr):
     return bool(emptyStr and emptyStr.strip())
 
+def logOut():
+    newAdminWindow.destroy()
+    userLogin()
+
+
+
 def adminAccess():
 
     global newAdminWindow
@@ -244,7 +252,7 @@ def adminAccess():
     createButton = Button (newAdminWindow, text='Create New User', command = createNewUser)
     createButton.grid (columnspan=2, sticky=W)
 
-    remoButton = Button(newAdminWindow, text='Remove User')
+    remoButton = Button(newAdminWindow, text='Log out', command = logOut)
     remoButton.grid (columnspan=2, sticky=W)
 
     newAdminWindow.mainloop()
@@ -294,47 +302,29 @@ def hasNumbers(inputString):
 
 def deleteRowCSV(deletedRow):
 
+    copyfile('Workers ' + curMonth + ' ' + curYear + '.csv', 'Workers Copy' + curMonth + ' ' + curYear + '.csv')
 
+    firstRowNum = 1
+    rowToDelete = {int(deletedRow)}
 
+    with open ('Workers Copy' + curMonth + ' ' + curYear + '.csv', 'rt') as infile, open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'wt') as outfile:
+        outfile.writelines (row for row_num, row in enumerate (infile, firstRowNum)if row_num not in rowToDelete)
 
-
-
-
-    FIRST_ROW_NUM = 0  # or 0
-    ROWS_TO_DELETE = {1, 3}
-
-    with open ('Workers ' + curMonth + ' ' + curYear + '.csv') as infile, open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'wt') as outfile:
-        outfile.writelines (row for row_num, row in enumerate (infile, FIRST_ROW_NUM)
-                            if row_num not in ROWS_TO_DELETE)
-
-    searchedWord =  deletedRow.split('[', 1)[1].split(']')[0]
-    searchedWord = '[' + searchedWord  + ']'
-
-
-    myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'a', newline='')
-    myExcelReader = csv.reader(open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r'),   delimiter=',')
-
-    with myExcelFile as csvfile:
-        reader = csv.reader (csvfile, delimiter=',')
-
-        for row in reader:
-            if str (row) == searchedWord:
-                print(row)
-                writer = csv.writer (csvfile)
-                writer.writerows (['Test Test', '2/29/2004', '14.29', 'TEST', 'test'])
-
-
+    os.remove ('Workers Copy' + curMonth + ' ' + curYear + '.csv')
 
 def deleteTreeView():
 
 
     global deleteRow
+    global treeview
 
     try:
 
         selectedItem = treeview.selection()[0]
-        deleteRow = str(treeview.item(selectedItem))
-        deleteRowCSV(deleteRow)
+        deleteRow = str (treeview.item (selectedItem))
+        searchedWord = deleteRow.split ("'text':", 1)[1].split (',')[0]
+
+        deleteRowCSV(searchedWord)
         treeview.delete(selectedItem)
 
     except IndexError:
@@ -348,51 +338,61 @@ def deleteTreeView():
 def viewUserButton():
     global treeview
 
-    root = Tk()
-    root.resizable (width = False, height=False)
-    treeview = ttk.Treeview(root)
-    treeview["columns"] = ("1", "2", "3", "4","5")
+    if not os.stat ('Workers ' + curMonth + ' ' + curYear + '.csv').st_size == 0:
+        root = Tk()
+        root.resizable (width = False, height=False)
+        treeview = ttk.Treeview(root)
+        treeview["columns"] = ("1", "2", "3", "4","5")
 
-    treeview.column ("1", width=130)
-    treeview.column ("2", width=130)
-    treeview.column ("3", width=130)
-    treeview.column ("4", width=130)
-    treeview.column ("5", width=130)
-
-
-    treeview.heading ("1", text="Full Name")
-    treeview.heading ("2", text="Hire Date")
-    treeview.heading ("3", text="Work Years")
-    treeview.heading ("4", text="SLID")
-    treeview.heading("5", text = "Password")
-
-    fourthCounter = 0
-
-    vsb = ttk.Scrollbar (root, orient="vertical", command=treeview.yview)
-    vsb.pack (side='right', fill='y')
-
-    treeview.configure (yscrollcommand=vsb.set)
-
-    myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r')
+        treeview.column ("1", width=130)
+        treeview.column ("2", width=130)
+        treeview.column ("3", width=130)
+        treeview.column ("4", width=130)
+        treeview.column ("5", width=130)
 
 
+        treeview.heading ("1", text="Full Name")
+        treeview.heading ("2", text="Hire Date")
+        treeview.heading ("3", text="Work Years")
+        treeview.heading ("4", text="SLID")
+        treeview.heading("5", text = "Password")
 
-    with myExcelFile as csvfile:
-        df1 = pd.read_csv (
-            'C:\\Users\\SXM037W\\PycharmProjects\\untitled\\' + 'Workers ' + curMonth + ' ' + curYear + '.csv')
-        reader = csv.reader (csvfile, delimiter=',')
-        for row in reader:
-            fourthCounter = fourthCounter + 1
-            treeview.insert ("", END, text = fourthCounter, values=(row))
+        fourthCounter = 0
+
+        vsb = ttk.Scrollbar (root, orient="vertical", command=treeview.yview)
+        vsb.pack (side='right', fill='y')
+
+        treeview.configure (yscrollcommand=vsb.set)
+
+        myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r')
 
 
 
-    treeview.pack()
+        with myExcelFile as csvfile:
+            df1 = pd.read_csv (
+                'C:\\Users\\SXM037W\\PycharmProjects\\untitled\\' + 'Workers ' + curMonth + ' ' + curYear + '.csv')
+            reader = csv.reader (csvfile, delimiter=',')
+            for row in reader:
+                fourthCounter = fourthCounter + 1
+                treeview.insert ("", END, text = fourthCounter, values=(row))
 
-    delButton = Button (root, text="Delete Row", command=deleteTreeView)
-    delButton.pack()
 
-    root.mainloop ()
+
+        treeview.pack()
+
+        delButton = Button (root, text="Delete Row", command=deleteTreeView)
+        delButton.pack()
+
+        root.mainloop ()
+
+    else:
+
+        newWindowIM = Tk ()
+        newWindowIM.title ('Error')
+        newWindowIM.geometry ('300x300')
+        rlbl = Label (newWindowIM, text='\n Error - No users listed ')
+        rlbl.pack ()
+
 
 def submitButton():
 
@@ -474,6 +474,26 @@ def submitButton():
             userInputLabel.grid (row=8, sticky=S)
 
 
+
+
+def backButton():
+
+
+    newUserWindow.destroy()
+    
+    newAdminWindow = Tk ()
+    newAdminWindow.title ('Admin')
+    newAdminWindow.geometry ('150x150')
+
+    createButton = Button (newAdminWindow, text='Create New User', command = createNewUser)
+    createButton.grid (columnspan=2, sticky=W)
+
+    remoButton = Button(newAdminWindow, text='Log out', command = logOut)
+    remoButton.grid (columnspan=2, sticky=W)
+
+    newAdminWindow.mainloop()
+
+
 def createNewUser():
 
     newAdminWindow.destroy()
@@ -525,17 +545,15 @@ def createNewUser():
     viewButton.grid(columnspan=2, sticky = SE)
 
 
+    viewButton = Button(newUserWindow, text = 'Back', command = backButton)
+    viewButton.grid(columnspan=2, sticky = SE)
+
     newUserWindow.mainloop()
 
 
 
 userLogin()
 
-        
-        
-        
-        
-        
         
         
         
