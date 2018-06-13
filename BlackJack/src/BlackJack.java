@@ -1,20 +1,16 @@
 from tkinter import *
+from tkinter import ttk
 from datetime import datetime
 import datetime
+import re
 import csv
 import os
 import pandas as pd
-
-
 
 global now
 global myExcelFile
 global date_format
 global writer_data
-
-
-
-
 
 date_format = "%m/%d/%Y"
 now = datetime.datetime.now()
@@ -31,10 +27,9 @@ dataList = []
 
 if not os.path.exists('C:\\Users\\SXM037W\\PycharmProjects\\untitled\\' + 'Workers ' + curMonth + ' ' + curYear + '.csv'):
        myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'a', newline='')
-       regHeaders = ['Full Name', 'Hire Date', 'Work Years', 'SLID', 'Password']
+
        with myExcelFile as csvfile:
            writer = csv.writer (csvfile)
-           writer.writerows ([regHeaders])
 
 
 
@@ -49,6 +44,7 @@ def secondCount():
 def thirdCount():
     global thirdCounter
     thirdCounter = thirdCounter + 1
+
 
 def check_list(arg):
     for i in arg:
@@ -294,37 +290,109 @@ def hasNumbers(inputString):
     return any(char.isdigit() for char in inputString)
 
 
+
+
+def deleteRowCSV(deletedRow):
+
+
+
+
+
+
+
+    FIRST_ROW_NUM = 0  # or 0
+    ROWS_TO_DELETE = {1, 3}
+
+    with open ('Workers ' + curMonth + ' ' + curYear + '.csv') as infile, open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'wt') as outfile:
+        outfile.writelines (row for row_num, row in enumerate (infile, FIRST_ROW_NUM)
+                            if row_num not in ROWS_TO_DELETE)
+
+    searchedWord =  deletedRow.split('[', 1)[1].split(']')[0]
+    searchedWord = '[' + searchedWord  + ']'
+
+
+    myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'a', newline='')
+    myExcelReader = csv.reader(open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r'),   delimiter=',')
+
+    with myExcelFile as csvfile:
+        reader = csv.reader (csvfile, delimiter=',')
+
+        for row in reader:
+            if str (row) == searchedWord:
+                print(row)
+                writer = csv.writer (csvfile)
+                writer.writerows (['Test Test', '2/29/2004', '14.29', 'TEST', 'test'])
+
+
+
+def deleteTreeView():
+
+
+    global deleteRow
+
+    try:
+
+        selectedItem = treeview.selection()[0]
+        deleteRow = str(treeview.item(selectedItem))
+        deleteRowCSV(deleteRow)
+        treeview.delete(selectedItem)
+
+    except IndexError:
+
+        newWindowIM = Tk ()
+        newWindowIM.title ('Error')
+        newWindowIM.geometry ('300x300')
+        rlbl = Label (newWindowIM, text='\n Error - No selection ')
+        rlbl.pack ()
+
 def viewUserButton():
-    print(pd.options.display.max_colwidth)
-    pd.options.display.max_colwidth = 100000
+    global treeview
+
+    root = Tk()
+    root.resizable (width = False, height=False)
+    treeview = ttk.Treeview(root)
+    treeview["columns"] = ("1", "2", "3", "4","5")
+
+    treeview.column ("1", width=130)
+    treeview.column ("2", width=130)
+    treeview.column ("3", width=130)
+    treeview.column ("4", width=130)
+    treeview.column ("5", width=130)
+
+
+    treeview.heading ("1", text="Full Name")
+    treeview.heading ("2", text="Hire Date")
+    treeview.heading ("3", text="Work Years")
+    treeview.heading ("4", text="SLID")
+    treeview.heading("5", text = "Password")
+
+    fourthCounter = 0
+
+    vsb = ttk.Scrollbar (root, orient="vertical", command=treeview.yview)
+    vsb.pack (side='right', fill='y')
+
+    treeview.configure (yscrollcommand=vsb.set)
+
+    myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r')
 
 
 
-    df1 = pd.read_csv (
-        'C:\\Users\\SXM037W\\PycharmProjects\\untitled\\' + 'Workers ' + curMonth + ' ' + curYear + '.csv', names=['Name', 'Hire Date', 'Years Working', 'SLID', 'Password', ])
+    with myExcelFile as csvfile:
+        df1 = pd.read_csv (
+            'C:\\Users\\SXM037W\\PycharmProjects\\untitled\\' + 'Workers ' + curMonth + ' ' + curYear + '.csv')
+        reader = csv.reader (csvfile, delimiter=',')
+        for row in reader:
+            fourthCounter = fourthCounter + 1
+            treeview.insert ("", END, text = fourthCounter, values=(row))
 
 
-    print (df1)
-    print(pd.options.display.max_colwidth)
-    pd.options.display.max_colwidth = 100000
 
+    treeview.pack()
 
+    delButton = Button (root, text="Delete Row", command=deleteTreeView)
+    delButton.pack()
 
-
-    viewUserWindow = Tk()
-    viewUserWindow.title('Current Users')
-
-    w = 600
-    h = 600
-    ws = viewUserWindow.winfo_screenwidth ()
-    hs = viewUserWindow.winfo_screenheight ()
-    x = (ws / 2) - (w / 2)
-    y = (hs / 2) - (h / 2)
-    viewUserWindow.geometry ('%dx%d+%d+%d' % (w, h, x, y))
-    labelPopulation = Label (viewUserWindow, text=df1.to_string(justify= 'center', line_width= 10))
-    labelPopulation.grid (row=10 , sticky=W)
-
-
+    root.mainloop ()
 
 def submitButton():
 
