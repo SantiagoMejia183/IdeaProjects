@@ -6,32 +6,53 @@ import datetime
 import csv
 import os
 import pandas as pd
+import numpy as np
+from numpy import genfromtxt
 
 global now
 global myExcelFile
 global date_format
 global writer_data
+global data_array
+global arraySLID
 
 date_format = "%m/%d/%Y"
-now = datetime.datetime.now()
-curYear = str(now.year)
-curMonth = str(now.month)
-curDay = str(now.day)
+now = datetime.datetime.now ()
+curYear = str (now.year)
+curMonth = str (now.month)
+curDay = str (now.day)
 curDate = curMonth + '/' + curDay + '/' + curYear
 counter = 0
-secondCounter =0
+secondCounter = 0
 thirdCounter = 0
 dataList = []
+arraySLID = []
+arrayPassword = []
+dataArrayTest =[]
+
 
 dirPath = 'C:\\Users\\SXM037W\\PycharmProjects\\untitled\\'
-os.chdir(dirPath)
+os.chdir (dirPath)
 
 
-if not os.path.exists('Workers ' + curMonth + ' ' + curYear + '.csv'):
-       myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'a', newline='')
+def loadWorkers():
+    if not os.path.exists ('Workers ' + curMonth + ' ' + curYear + '.csv'):
+        myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'a', newline='')
 
-       with myExcelFile as csvfile:
-           writer = csv.writer (csvfile)
+        with myExcelFile as csvfile:
+            writer = csv.writer (csvfile)
+    else:
+        with open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r') as dest_f:
+            data_iter = csv.reader (dest_f, delimiter=',')
+            data = [data for data in data_iter]
+        data_array = np.asarray (data, dtype= str)
+
+        for userID in range(len(data_array)):
+            arraySLID.append(str(data_array[userID]).split ("'",1 )[1].split ("'")[6])
+
+        for userID in range(len(data_array)):
+            arrayPassword.append(str(data_array[userID]).split ("'",1 )[1].split ("'")[8])
+
 
 
 
@@ -39,9 +60,11 @@ def increment():
     global counter
     counter = counter + 1
 
+
 def secondCount():
     global secondCounter
     secondCounter = secondCounter + 1
+
 
 def thirdCount():
     global thirdCounter
@@ -50,15 +73,14 @@ def thirdCount():
 
 def check_list(arg):
     for i in arg:
-        if arg.count(i) > 1:
-            print('Dup')
+        if arg.count (i) > 1:
+            print ('Dup')
+
 
 def compareInput(specificData):
-
     global thirdCounter
 
     duplicateBool = False
-
 
     myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r')
     with myExcelFile as csvfile:
@@ -72,32 +94,28 @@ def compareInput(specificData):
 
 
 def userLogin():
-
     global entryName
     global entryPassword
     global loginWindow
 
-    loginWindow = Tk()
-    loginWindow.title('User Login')
-    labelName = Label(loginWindow, text='Username: ')
-    labelPassword = Label(loginWindow, text='Password: ')
+    loginWindow = Tk ()
+    loginWindow.title ('User Login')
+    labelName = Label (loginWindow, text='Username: ')
+    labelPassword = Label (loginWindow, text='Password: ')
 
-    labelName.grid(row = 1, sticky=W)
-    labelPassword.grid(row = 2, sticky=W)
+    labelName.grid (row=1, sticky=W)
+    labelPassword.grid (row=2, sticky=W)
 
-    entryName = Entry(loginWindow)
-    entryPassword = Entry(loginWindow, show='*')
+    entryName = Entry (loginWindow)
+    entryPassword = Entry (loginWindow, show='*')
 
+    entryName.grid (row=1, column=1)
+    entryPassword.grid (row=2, column=1)
 
-    entryName.grid(row=1, column=1)
-    entryPassword.grid(row=2, column=1)
-
-    enterButton = Button(loginWindow, text='Login', command=CheckLogin)
+    enterButton = Button (loginWindow, text='Login', command=CheckLogin)
     enterButton.grid (columnspan=2, sticky=W)
 
-
-    loginWindow.mainloop()
-
+    loginWindow.mainloop ()
 
 
 def enterVacButton():
@@ -116,18 +134,18 @@ def enterVacButton():
         rlbl.pack ()
         vacSubmit = False
 
-
     if vacSubmit and counter == 0:
 
-        userInputs = monthVariable.get() + '/' + dayVariable.get() + '/' + yearVariable.get()
+        userInputs = monthVariable.get () + '/' + dayVariable.get () + '/' + yearVariable.get ()
 
-        increment()
+        increment ()
 
-        regularHeaders = ['Name','Date Requested', 'Hire Date', 'Purchased Hours', 'Carried Over', 'Earned Hours', 'Total Hours']
+        regularHeaders = ['Name', 'Date Requested', 'Hire Date', 'Purchased Hours', 'Carried Over', 'Earned Hours',
+                          'Total Hours']
 
-        #specificData = [userInputs, curDate, enterPurchasedHours.get(), enterCarriedHours.get(), enterEarnedHours.get(),totalHours, 'F']
+        # specificData = [userInputs, curDate, enterPurchasedHours.get(), enterCarriedHours.get(), enterEarnedHours.get(),totalHours, 'F']
 
-        hourData = [enterPurchasedHours.get(), enterCarriedHours.get(), enterEarnedHours.get()]
+        hourData = [enterPurchasedHours.get (), enterCarriedHours.get (), enterEarnedHours.get ()]
 
         userInputLabel = Label (newRequestWindow, text=hourData)
         userInputLabel.grid (row=7, sticky=S)
@@ -145,9 +163,9 @@ def enterVacButton():
         rlbl = Label (newWindowIM, text='\n Error - Hours already submitted ')
         rlbl.pack ()
 
-def requestVacation():
-    newUserWindow.destroy()
 
+def requestVacation():
+    newUserWindow.destroy ()
 
     global newRequestWindow
     global enterCarriedHours
@@ -157,7 +175,6 @@ def requestVacation():
     global dayVariable
     global yearVariable
     global enterVacation
-
 
     newRequestWindow = Tk ()
     newRequestWindow.title ('Request Vacation')
@@ -182,80 +199,104 @@ def requestVacation():
     enterVacation = Button (newRequestWindow, text='Submit', command=enterVacButton)
     enterVacation.grid (row=4, column=2, columnspan=2, sticky=W)
 
-
-    monthFrame = Frame(newRequestWindow)
+    monthFrame = Frame (newRequestWindow)
     monthFrame.grid (column=0, row=8, sticky=(N, W, E, S))
     monthFrame.columnconfigure (0, weight=1)
     monthFrame.rowconfigure (0, weight=1)
 
-    dayFrame = Frame(newRequestWindow)
+    dayFrame = Frame (newRequestWindow)
     dayFrame.grid (column=2, row=8, sticky=(N, W, E, S))
     dayFrame.columnconfigure (0, weight=1)
     dayFrame.rowconfigure (0, weight=1)
 
-
-    yearFrame = Frame(newRequestWindow)
+    yearFrame = Frame (newRequestWindow)
     yearFrame.grid (column=4, row=8, sticky=(N, W, E, S))
     yearFrame.columnconfigure (0, weight=1)
     yearFrame.rowconfigure (0, weight=1)
 
-
-
     theMonths = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
-    theDays = range(1, 32)
-    theYears = range(now.year, now.year - 1, -1)
+    theDays = range (1, 32)
+    theYears = range (now.year, now.year - 1, -1)
 
+    monthVariable = StringVar (newRequestWindow)
+    monthVariable.set ('1')
 
-    monthVariable = StringVar(newRequestWindow)
-    monthVariable.set('1')
+    dayVariable = StringVar (newRequestWindow)
+    dayVariable.set ('1')
 
-    dayVariable = StringVar(newRequestWindow)
-    dayVariable.set('1')
-
-    yearVariable = StringVar(newRequestWindow)
-    yearVariable.set(now.year)
-
+    yearVariable = StringVar (newRequestWindow)
+    yearVariable.set (now.year)
 
     actualMenu = OptionMenu (monthFrame, monthVariable, *theMonths)
     Label (monthFrame, text="Select a month").grid (row=1, column=1)
     actualMenu.grid (row=2, column=1)
 
-
-    actualMenu = OptionMenu(dayFrame, dayVariable, *theDays)
+    actualMenu = OptionMenu (dayFrame, dayVariable, *theDays)
     Label (dayFrame, text="Select a day").grid (row=1, column=1)
     actualMenu.grid (row=2, column=1)
 
-    actualMenu = OptionMenu(yearFrame, yearVariable, *theYears)
+    actualMenu = OptionMenu (yearFrame, yearVariable, *theYears)
     Label (yearFrame, text="Select a year").grid (row=1, column=1)
     actualMenu.grid (row=2, column=1)
 
-
     newRequestWindow.mainloop ()
 
+
 def checkEmpty(emptyStr):
-    return bool(emptyStr and emptyStr.strip())
+    return bool (emptyStr and emptyStr.strip ())
+
 
 def logOut():
-    newAdminWindow.destroy()
-    userLogin()
 
+    if newAdminWindow.state () == 'normal':
+        newAdminWindow.destroy ()
+    try:
+        if newUserWindow.state () == 'normal':
+         newUserWindow.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
+
+    try:
+         if treeroot.state () == 'normal':
+            treeroot.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
+    try:
+
+        if newWindowIM.state() == 'normal':
+            newWindowIM.destroy()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
+
+
+    loadWorkers()
+
+    userLogin ()
 
 
 def adminAccess():
-
     global newAdminWindow
-    loginWindow.destroy()
+    loginWindow.destroy ()
     newAdminWindow = Tk ()
     newAdminWindow.title ('Admin')
     newAdminWindow.geometry ('150x150')
 
-    createButton = Button (newAdminWindow, text='Create New User', command = createNewUser)
+    createButton = Button (newAdminWindow, text='Create New User', command=createNewUser)
     createButton.grid (columnspan=2, sticky=W)
 
-    remoButton = Button(newAdminWindow, text='Log out', command = logOut)
+    viewButton = Button (newAdminWindow, text='View current users', command=viewUserButton)
+    viewButton.grid (columnspan=2, sticky=SE)
+
+    remoButton = Button (newAdminWindow, text='Log out', command=logOut)
     remoButton.grid (columnspan=2, sticky=W)
 
-    newAdminWindow.mainloop()
+    newAdminWindow.mainloop ()
 
 
 def regularAccess():
@@ -272,77 +313,72 @@ def regularAccess():
 
 
 def CheckLogin():
-
-    if entryName.get() == "mo" and entryPassword.get () == "pass":
-        adminAccess()
-    elif entryName.get() == "te" and entryPassword.get () == "te":
-        regularAccess()
-
-    elif checkEmpty(entryName.get()) or checkEmpty(entryPassword.get()):
-        newWindowIM = Tk()
-        newWindowIM.title('Error')
-        newWindowIM.geometry('150x50')
-        rlbl = Label(newWindowIM, text='\n Invalid Login')
-        rlbl.pack()
-        newWindowIM.mainloop()
+    if entryName.get () == "mo" and entryPassword.get () == "pass":
+        adminAccess ()
+    elif entryName.get() in arraySLID and entryPassword.get() in arrayPassword:
+        regularAccess ()
+    elif checkEmpty (entryName.get ()) or checkEmpty (entryPassword.get ()):
+        allErrors ('Invalid Login')
 
     else:
-        newWindowIM = Tk ()
-        newWindowIM.title ('Error')
-        newWindowIM.geometry ('150x50')
-        rlbl = Label (newWindowIM, text='\n Invalid Login')
-        rlbl.pack ()
-        newWindowIM.mainloop ()
+        allErrors('Invalid Login')
+
 
 def hasNumbers(inputString):
-    return any(char.isdigit() for char in inputString)
-
-
+    return any (char.isdigit () for char in inputString)
 
 
 def deleteRowCSV(deletedRow):
-
-    copyfile('Workers ' + curMonth + ' ' + curYear + '.csv', 'Workers Copy' + curMonth + ' ' + curYear + '.csv')
+    copyfile ('Workers ' + curMonth + ' ' + curYear + '.csv', 'Workers Copy' + curMonth + ' ' + curYear + '.csv')
 
     firstRowNum = 1
-    rowToDelete = {int(deletedRow)}
+    rowToDelete = {int (deletedRow)}
 
-    with open ('Workers Copy' + curMonth + ' ' + curYear + '.csv', 'rt') as infile, open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'wt') as outfile:
-        outfile.writelines (row for row_num, row in enumerate (infile, firstRowNum)if row_num not in rowToDelete)
+    with open ('Workers Copy' + curMonth + ' ' + curYear + '.csv', 'rt') as infile, open (
+            'Workers ' + curMonth + ' ' + curYear + '.csv', 'wt') as outfile:
+        outfile.writelines (row for row_num, row in enumerate (infile, firstRowNum) if row_num not in rowToDelete)
 
     os.remove ('Workers Copy' + curMonth + ' ' + curYear + '.csv')
 
+
 def deleteTreeView():
-
-
     global deleteRow
-    global treeview
 
     try:
 
-        selectedItem = treeview.selection()[0]
+        selectedItem = treeview.selection ()[0]
         deleteRow = str (treeview.item (selectedItem))
         searchedWord = deleteRow.split ("'text':", 1)[1].split (',')[0]
 
-        deleteRowCSV(searchedWord)
-        treeview.delete(selectedItem)
+        deleteRowCSV (searchedWord)
+        treeview.delete (selectedItem)
+
+
+
+
 
     except IndexError:
 
-        newWindowIM = Tk ()
-        newWindowIM.title ('Error')
-        newWindowIM.geometry ('300x300')
-        rlbl = Label (newWindowIM, text='\n Error - No selection ')
-        rlbl.pack ()
+        allErrors('No selection')
+
 
 def viewUserButton():
     global treeview
+    global treeroot
+
+    try:
+        if treeroot.state () == 'normal':
+            treeroot.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
 
     if not os.stat ('Workers ' + curMonth + ' ' + curYear + '.csv').st_size == 0:
-        root = Tk()
-        root.resizable (width = False, height=False)
-        treeview = ttk.Treeview(root)
-        treeview["columns"] = ("1", "2", "3", "4","5")
+        treeroot = Tk ()
+        treeroot.resizable (width=False, height=False)
+        treeview = ttk.Treeview (treeroot)
+        treeview["columns"] = ("1", "2", "3", "4", "5")
 
         treeview.column ("1", width=130)
         treeview.column ("2", width=130)
@@ -350,23 +386,20 @@ def viewUserButton():
         treeview.column ("4", width=130)
         treeview.column ("5", width=130)
 
-
         treeview.heading ("1", text="Full Name")
         treeview.heading ("2", text="Hire Date")
         treeview.heading ("3", text="Work Years")
         treeview.heading ("4", text="SLID")
-        treeview.heading("5", text = "Password")
+        treeview.heading ("5", text="Password")
 
         fourthCounter = 0
 
-        vsb = ttk.Scrollbar (root, orient="vertical", command=treeview.yview)
+        vsb = ttk.Scrollbar (treeroot, orient="vertical", command=treeview.yview)
         vsb.pack (side='right', fill='y')
 
         treeview.configure (yscrollcommand=vsb.set)
 
         myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r')
-
-
 
         with myExcelFile as csvfile:
             df1 = pd.read_csv (
@@ -374,77 +407,66 @@ def viewUserButton():
             reader = csv.reader (csvfile, delimiter=',')
             for row in reader:
                 fourthCounter = fourthCounter + 1
-                treeview.insert ("", END, text = fourthCounter, values=(row))
+                treeview.insert ("", END, text=fourthCounter, values=(row))
 
+        treeview.pack ()
 
+        delButton = Button (treeroot, text="Delete Row", command=deleteTreeView)
+        delButton.pack ()
 
-        treeview.pack()
-
-        delButton = Button (root, text="Delete Row", command=deleteTreeView)
-        delButton.pack()
-
-        root.mainloop ()
+        treeroot.mainloop ()
 
     else:
+        allErrors('No uSSers listed')
 
-        newWindowIM = Tk ()
-        newWindowIM.title ('Error')
-        newWindowIM.geometry ('300x300')
-        rlbl = Label (newWindowIM, text='\n Error - No users listed ')
-        rlbl.pack ()
+def allErrors(errorMessage):
 
+    global newWindowIM
+    newWindowIM = Tk ()
+    newWindowIM.title ('Error')
+    newWindowIM.geometry ('300x300')
+    rlbl = Label (newWindowIM, text='\n Error ' + errorMessage )
+    rlbl.pack ()
+    newWindowIM.mainloop()
 
 def submitButton():
-
     global workingYears
     global specificData
 
-
-    if hasNumbers(enterFN.get()):
-        newWindowIM = Tk ()
-        newWindowIM.title ('Error')
-        newWindowIM.geometry ('300x300')
-        rlbl = Label (newWindowIM, text='\n Error - Numerical Value for first name ')
-        rlbl.pack ()
+    if not enterFN.get().isalpha():
+        allErrors('- Enter Alphabetical Values for first name')
         canSubmit = False
     else:
         canSubmit = True
 
-
-    if hasNumbers(enterLN.get()):
-        rlbl = Label (newWindowIM, text='\n Error - Numerical Value for last name ')
-        rlbl.pack ()
+    if not enterLN.get().isalpha():
+        allErrors('Alphabetical Values for last name')
         canSubmit = False
     else:
         canSubmit = True
 
     try:
-        dob = datetime.datetime.strptime (enterHD.get(), date_format)
+        dob = datetime.datetime.strptime (enterHD.get (), date_format)
         canSubmit = True
 
-        lengthWorking = now - datetime.datetime.strptime(enterHD.get(), date_format)
-        workingYears = round((lengthWorking.days/365.0), 2)
+        lengthWorking = now - datetime.datetime.strptime (enterHD.get (), date_format)
+        workingYears = round ((lengthWorking.days / 365.0), 2)
 
     except ValueError:
 
-        newWindowIM = Tk ()
-        newWindowIM.title ('Error')
-        newWindowIM.geometry ('300x300')
-        rlbl = Label (newWindowIM, text='\n Error - Incorrect date format or values ')
-        rlbl.pack ()
+        allErrors('Incorrect date format or values')
         canSubmit = False
 
     except:
 
-        rlbl = Label (newWindowIM, text='\n Error - Incorrect date entry ')
-        rlbl.pack ()
+        allErrors('Incorrect date entry')
         canSubmit = False
 
     if canSubmit:
 
-        usersName =  enterFN.get().capitalize() + " " + enterLN.get().capitalize()
-        stringHD = enterHD.get()
-        if stringHD[0] =='0' and stringHD[3] == '0':
+        usersName = enterFN.get ().capitalize () + " " + enterLN.get ().capitalize ()
+        stringHD = enterHD.get ()
+        if stringHD[0] == '0' and stringHD[3] == '0':
             hireDate = stringHD[1:3] + stringHD[4:10]
         elif stringHD[0] != '0' and stringHD[3] == '0':
             hireDate = stringHD[0:3] + stringHD[4:10]
@@ -453,9 +475,8 @@ def submitButton():
         else:
             hireDate = stringHD[0:10]
 
-
-        specificData =  [usersName, hireDate,str(workingYears), enterSLID.get().upper(), enterPW.get()]
-        if not compareInput(specificData):
+        specificData = [usersName, hireDate, str (workingYears), enterSLID.get ().upper (), enterPW.get ()]
+        if not compareInput (specificData):
 
             enterFN.delete (0, END)
             enterLN.delete (0, END)
@@ -469,52 +490,28 @@ def submitButton():
                 writer = csv.writer (csvfile)
                 writer.writerows ([specificData])
 
+
         else:
             userInputLabel = Label (newUserWindow, text=usersName + ' not added - Duplicate.')
             userInputLabel.grid (row=8, sticky=S)
 
 
-
-
-def backButton():
-
-
-    newUserWindow.destroy()
-    
-    newAdminWindow = Tk ()
-    newAdminWindow.title ('Admin')
-    newAdminWindow.geometry ('150x150')
-
-    createButton = Button (newAdminWindow, text='Create New User', command = createNewUser)
-    createButton.grid (columnspan=2, sticky=W)
-
-    remoButton = Button(newAdminWindow, text='Log out', command = logOut)
-    remoButton.grid (columnspan=2, sticky=W)
-
-    newAdminWindow.mainloop()
-
-
 def createNewUser():
-
-    newAdminWindow.destroy()
-
     global newUserWindow
     global enterFN
     global enterLN
     global enterHD
     global enterSLID
     global enterPW
-    global newUserWindow
 
-    newUserWindow = Tk()
-    newUserWindow.title('Create New User')
-    newUserWindow.geometry('600x600')
+    newUserWindow = Tk ()
+    newUserWindow.title ('Create New User')
+    newUserWindow.geometry ('600x600')
 
-
-    newUserFN = Label(newUserWindow, text='First name: ')
-    newUserLN = Label(newUserWindow, text='Last name: ')
-    newUserHireM1 = Label(newUserWindow, text = 'Hire date (MM/DD/YYYY):')
-    newUserSLID = Label(newUserWindow, text = 'SLID:')
+    newUserFN = Label (newUserWindow, text='First name: ')
+    newUserLN = Label (newUserWindow, text='Last name: ')
+    newUserHireM1 = Label (newUserWindow, text='Hire date (MM/DD/YYYY):')
+    newUserSLID = Label (newUserWindow, text='SLID:')
     newUserPW = Label (newUserWindow, text='Password:')
 
     newUserFN.grid (row=1, sticky=W)
@@ -523,36 +520,26 @@ def createNewUser():
     newUserSLID.grid (row=4, sticky=W)
     newUserPW.grid (row=5, sticky=W)
 
-    enterFN = Entry(newUserWindow, width = 12)
-    enterLN = Entry(newUserWindow, width = 12)
-    enterHD = Entry(newUserWindow, width = 12)
-    enterSLID = Entry(newUserWindow, width=12)
-    enterPW = Entry(newUserWindow, width=12)
+    enterFN = Entry (newUserWindow, width=12)
+    enterLN = Entry (newUserWindow, width=12)
+    enterHD = Entry (newUserWindow, width=12)
+    enterSLID = Entry (newUserWindow, width=12)
+    enterPW = Entry (newUserWindow, width=12)
 
-
-    enterFN.grid(row=1, column=2)
-    enterLN.grid(row=2, column=2)
-    enterHD.grid(row=3, column=2)
+    enterFN.grid (row=1, column=2)
+    enterLN.grid (row=2, column=2)
+    enterHD.grid (row=3, column=2)
     enterSLID.grid (row=4, column=2)
     enterPW.grid (row=5, column=2)
 
+    enterButton = Button (newUserWindow, text='Submit', command=submitButton)
+    enterButton.grid (columnspan=2, sticky=SE)
 
-    enterButton = Button (newUserWindow, text='Submit', command = submitButton)
-    enterButton.grid(columnspan=2, sticky=SE)
+    newUserWindow.mainloop ()
 
+loadWorkers()
+userLogin ()
 
-    viewButton = Button(newUserWindow, text = 'View current users', command = viewUserButton)
-    viewButton.grid(columnspan=2, sticky = SE)
-
-
-    viewButton = Button(newUserWindow, text = 'Back', command = backButton)
-    viewButton.grid(columnspan=2, sticky = SE)
-
-    newUserWindow.mainloop()
-
-
-
-userLogin()
 
         
         
