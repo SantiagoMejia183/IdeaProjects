@@ -27,47 +27,51 @@ os.chdir (dirPath)
 workerPath = 'Workers ' + curMonth + ' ' + curYear + '.csv'
 workerVacHourPath = 'Workers Vacation Hours ' + curMonth + ' ' + curYear + '.csv'
 workerVacDatePath = 'Worker Selected Vac Dates ' + curMonth + ' ' + curYear + '.csv'
+workerSortedPath = 'Worker Sorted Dates ' + curMonth + curYear + '.csv'
 
 
 def prioritySort():
 
-    if not os.stat (workerVacDatePath).st_size == 0:
+        if not os.stat (workerVacDatePath).st_size == 0:
 
-        with open (workerVacDatePath, 'r') as dest_f:
-            data_iter = csv.reader (dest_f, delimiter=',')
-            data = [data for data in data_iter]
+            with open (workerVacDatePath, 'r') as dest_f:
+                data_iter = csv.reader (dest_f, delimiter=',')
+                data = [data for data in data_iter]
 
-        workerVacDateArray = np.asarray (data)
+            workerVacDateArray = np.asarray (data)
 
 
-        for i in range(len(workerVacDateArray)):
-            approvedSubmission = '[' + str (workerVacDateArray[i][0:5]).split ("[", 1)[1].split ("]")[
-                0] + " 'Approved' " + \
-                str (workerVacDateArray[i][6:8]).split ("[", 1)[1].split ("]")[0] + ']'
+            for i in range(len(workerVacDateArray)):
+                approvedSubmission = '[' + str (workerVacDateArray[i][0:5]).split ("[", 1)[1].split ("]")[
+                    0] + " 'Approved' " + \
+                    str (workerVacDateArray[i][6:8]).split ("[", 1)[1].split ("]")[0] + ']'
 
-            rejectedSubmission = str (workerVacDateArray[i][0:5]).split ("[", 1)[1].split ("]")[
-                0] + " 'Rejected' " + \
-                                 str (workerVacDateArray[i][6:8]).split ("[", 1)[1].split ("]")[0]
+                rejectedSubmission = str (workerVacDateArray[i][0:5]).split ("[", 1)[1].split ("]")[
+                    0] + " 'Rejected' " + \
+                                     str (workerVacDateArray[i][6:8]).split ("[", 1)[1].split ("]")[0]
 
-            myExcelFile = open (workerVacDatePath, 'r')
-            with myExcelFile as csvfile:
-                reader = csv.reader (csvfile, delimiter=',')
-                for row in reader:
-                    if workerVacDateArray[i][0] != row[0] and workerVacDateArray[i][2] == row[2] and float(workerVacDateArray[i][7]) < float(row[7]):
-                        workerVacDateArray[i][5] = 'Rejected'
+                myExcelFile = open (workerVacDatePath, 'r')
+                with myExcelFile as csvfile:
+                    reader = csv.reader (csvfile, delimiter=',')
+                    for row in reader:
+                        if workerVacDateArray[i][0] != row[0] and workerVacDateArray[i][2] == row[2] and float(workerVacDateArray[i][7]) < float(row[7]):
+                            workerVacDateArray[i][5] = 'Rejected'
+                            break
 
-                        break
+            for i in range(len(workerVacDateArray)):
+                if workerVacDateArray[i][5] == 'Pending':
+                    workerVacDateArray[i][5] = 'Approved'
 
-        for i in range(len(workerVacDateArray)):
-            if workerVacDateArray[i][5] == 'Pending':
-                workerVacDateArray[i][5] = 'Approved'
+            for i in range(len(workerVacDateArray)):
+                print(workerVacDateArray[i])
+                myExcelFile = open (workerSortedPath, 'w', newline='')
+                with myExcelFile as csvfile:
+                    writer = csv.writer (csvfile)
+                    writer.writerows ([workerVacDateArray[i]])
 
-        for i in range(len(workerVacDateArray)):
-            print(workerVacDateArray[i])
-            myExcelFile = open (workerVacDatePath, 'a', newline='')
-            with myExcelFile as csvfile:
-                writer = csv.writer (csvfile)
-                writer.writerows ([workerVacDateArray[i]])
+
+        else:
+            allErrors('No submissions/Already sorted')
 
 
 
@@ -81,11 +85,15 @@ def loadBlankFiles():
     if not os.path.exists (workerPath):
         myExcelFile = open (workerPath, 'a', newline='')
 
-    # if not os.path.exists ('Temporary' + workerVacDatePath):
-    #     myExcelFile = open ('Temporary' + workerVacDatePath, 'a', newline='')
 
     if not os.path.exists (workerVacHourPath):
         myExcelFile = open (workerVacHourPath, 'a', newline='')
+
+    if not os.path.exists (workerVacHourPath):
+        myExcelFile = open (workerVacHourPath, 'a', newline='')
+
+    # if not os.path.exists ('Temporary' + workerVacDatePath):
+    #     myExcelFile = open ('Temporary' + workerVacDatePath, 'a', newline='')
 
     if not os.path.exists ('Temporary' + workerPath):
         myExcelFile = open ('Temporary' + workerPath, 'a', newline='')
@@ -315,18 +323,15 @@ def enterVacReqButton():
         hourData = [(arrayName[userIndex]), curDate, userInputs, dayOfWeek, vacationDay, reqStatus, ' ',
                     arrayWorkYears[0]]
         print((hourData))
-        canSubmit = True
 
     except IndexError:
         allErrors ('- No hours submitted')
-        canSubmit = False
 
     if not compareInput (hourData, workerVacDatePath):
         myExcelFile = open (workerVacDatePath, 'a', newline='')
         with myExcelFile as csvfile:
             writer = csv.writer (csvfile)
             writer.writerows ([hourData])
-
     else:
         allErrors ('- Date already added')
 
@@ -875,7 +880,6 @@ def createNewUser():
 loadBlankFiles ()
 loadWorkers ()
 userLogin ()
-
 
 
         
