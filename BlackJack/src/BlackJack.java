@@ -2,19 +2,13 @@ from tkinter import *
 from tkinter import ttk
 from datetime import datetime
 from shutil import copyfile
-import datetime
+import calendar
 import csv
 import os
-import pandas as pd
 import numpy as np
-from numpy import genfromtxt
-
+import datetime
 global now
-global myExcelFile
 global date_format
-global writer_data
-global data_array
-global arraySLID
 
 date_format = "%m/%d/%Y"
 now = datetime.datetime.now ()
@@ -26,34 +20,137 @@ counter = 0
 secondCounter = 0
 thirdCounter = 0
 dataList = []
-arraySLID = []
-arrayPassword = []
-dataArrayTest =[]
-
 
 dirPath = 'C:\\Users\\SXM037W\\PycharmProjects\\untitled\\'
 os.chdir (dirPath)
 
+workerPath = 'Workers ' + curMonth + ' ' + curYear + '.csv'
+workerVacHourPath = 'Workers Vacation Hours ' + curMonth + ' ' + curYear + '.csv'
+workerVacDatePath = 'Worker Selected Vac Dates ' + curMonth + ' ' + curYear + '.csv'
 
-def loadWorkers():
-    if not os.path.exists ('Workers ' + curMonth + ' ' + curYear + '.csv'):
-        myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'a', newline='')
 
-        with myExcelFile as csvfile:
-            writer = csv.writer (csvfile)
-    else:
-        with open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r') as dest_f:
+def prioritySort():
+
+    if not os.stat (workerVacDatePath).st_size == 0:
+
+        with open (workerVacDatePath, 'r') as dest_f:
             data_iter = csv.reader (dest_f, delimiter=',')
             data = [data for data in data_iter]
-        data_array = np.asarray (data, dtype= str)
 
-        for userID in range(len(data_array)):
-            arraySLID.append(str(data_array[userID]).split ("'",1 )[1].split ("'")[6])
-
-        for userID in range(len(data_array)):
-            arrayPassword.append(str(data_array[userID]).split ("'",1 )[1].split ("'")[8])
+        workerVacDateArray = np.asarray (data)
 
 
+        for i in range(len(workerVacDateArray)):
+            approvedSubmission = '[' + str (workerVacDateArray[i][0:5]).split ("[", 1)[1].split ("]")[
+                0] + " 'Approved' " + \
+                str (workerVacDateArray[i][6:8]).split ("[", 1)[1].split ("]")[0] + ']'
+
+            rejectedSubmission = str (workerVacDateArray[i][0:5]).split ("[", 1)[1].split ("]")[
+                0] + " 'Rejected' " + \
+                                 str (workerVacDateArray[i][6:8]).split ("[", 1)[1].split ("]")[0]
+
+            myExcelFile = open (workerVacDatePath, 'r')
+            with myExcelFile as csvfile:
+                reader = csv.reader (csvfile, delimiter=',')
+                for row in reader:
+                    if workerVacDateArray[i][0] != row[0] and workerVacDateArray[i][2] == row[2] and float(workerVacDateArray[i][7]) < float(row[7]):
+                        workerVacDateArray[i][5] = 'Rejected'
+
+                        break
+
+        for i in range(len(workerVacDateArray)):
+            if workerVacDateArray[i][5] == 'Pending':
+                workerVacDateArray[i][5] = 'Approved'
+
+        for i in range(len(workerVacDateArray)):
+            print(workerVacDateArray[i])
+            myExcelFile = open (workerVacDatePath, 'a', newline='')
+            with myExcelFile as csvfile:
+                writer = csv.writer (csvfile)
+                writer.writerows ([workerVacDateArray[i]])
+
+
+
+def loadBlankFiles():
+    if not os.path.exists (workerVacDatePath):
+        myExcelFile = open (workerVacDatePath, 'a', newline='')
+
+    if not os.path.exists (workerVacHourPath):
+        myExcelFile = open (workerVacHourPath, 'a', newline='')
+
+    if not os.path.exists (workerPath):
+        myExcelFile = open (workerPath, 'a', newline='')
+
+    # if not os.path.exists ('Temporary' + workerVacDatePath):
+    #     myExcelFile = open ('Temporary' + workerVacDatePath, 'a', newline='')
+
+    if not os.path.exists (workerVacHourPath):
+        myExcelFile = open (workerVacHourPath, 'a', newline='')
+
+    if not os.path.exists ('Temporary' + workerPath):
+        myExcelFile = open ('Temporary' + workerPath, 'a', newline='')
+
+
+def loadWorkers():
+    global arraySLID
+    global arrayName
+    global arrayWorkYears
+    global arrayPassword
+
+    arraySLID = []
+    arrayName = []
+    arrayWorkYears = []
+    arraySLID = []
+    arrayPassword = []
+
+    with open (workerPath, 'r') as dest_f:
+        data_iter = csv.reader (dest_f, delimiter=',')
+        data = [data for data in data_iter]
+    workerArray = np.asarray (data, dtype=str)
+
+    for userID in range (len (workerArray)):
+        arrayName.append (str (workerArray[userID]).split ("'", 1)[1].split ("'")[0])
+    for userID in range (len (workerArray)):
+        arrayWorkYears.append (str (workerArray[userID]).split ("'", 1)[1].split ("'")[4])
+    for userID in range (len (workerArray)):
+        arraySLID.append (str (workerArray[userID]).split ("'", 1)[1].split ("'")[6])
+    for userID in range (len (workerArray)):
+        arrayPassword.append (str (workerArray[userID]).split ("'", 1)[1].split ("'")[8])
+
+
+def loadWorkersVacationHours():
+    global arrayTotHours
+    global arrayVacName
+    global arrayWorkYears
+
+    arrayTotHours = []
+    arrayVacName = []
+    arrayWorkYears = []
+
+    with open (workerPath, 'r') as dest_f:
+        data_iter = csv.reader (dest_f, delimiter=',')
+        data = [data for data in data_iter]
+    workerArray = np.asarray (data, dtype=str)
+
+    with open (workerVacHourPath, 'r') as dest_f:
+        data_iter = csv.reader (dest_f, delimiter=',')
+        data = [data for data in data_iter]
+    workerVacHoursArray = np.asarray (data, dtype=str)
+
+    for userID in range (len (workerArray)):
+        if arrayName[userIndex] in workerVacHoursArray:
+            arrayVacName.append (str (workerArray[userIndex]).split ("'", 1)[1].split ("'")[0])
+            break
+
+    for userID in range (len (workerVacHoursArray)):
+        if arrayName[userIndex] in workerVacHoursArray:
+            arrayTotHours.append (str (workerVacHoursArray[userID]).split ("'", 1)[1].split ("'")[8])
+            break
+
+    for userID in range (len (workerArray)):
+        if arrayName[userIndex] in workerArray:
+            arrayWorkYears.append (str (workerArray[userIndex]).split ("'", 1)[1].split ("'")[4])
+            break
 
 
 def increment():
@@ -71,22 +168,28 @@ def thirdCount():
     thirdCounter = thirdCounter + 1
 
 
-def check_list(arg):
-    for i in arg:
-        if arg.count (i) > 1:
-            print ('Dup')
-
-
-def compareInput(specificData):
-    global thirdCounter
-
+def compareInput(specificData, path):
     duplicateBool = False
 
-    myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r')
+    myExcelFile = open (path, 'r')
     with myExcelFile as csvfile:
         reader = csv.reader (csvfile, delimiter=',')
         for row in reader:
             if row == specificData:
+                duplicateBool = True
+                break
+
+    return duplicateBool
+
+
+def duplicateSLID(dupeValue, path):
+    duplicateBool = False
+
+    myExcelFile = open (path, 'r')
+    with myExcelFile as csvfile:
+        reader = csv.reader (csvfile, delimiter=',')
+        for row in reader:
+            if dupeValue in row:
                 duplicateBool = True
                 break
 
@@ -112,92 +215,139 @@ def userLogin():
     entryName.grid (row=1, column=1)
     entryPassword.grid (row=2, column=1)
 
-    enterButton = Button (loginWindow, text='Login', command=CheckLogin)
+    enterButton = Button (loginWindow, text='Login', command=checkLogin)
     enterButton.grid (columnspan=2, sticky=W)
 
     loginWindow.mainloop ()
 
 
-def enterVacButton():
-    global totalHours
+def deleteRowViewer(theViewer, path):
+    global deleteRow
 
     try:
-        totalHours = (int (enterPurchasedHours.get ()) + int (enterCarriedHours.get ()) + int (enterEarnedHours.get ()))
-        vacSubmit = True
+        selectedItem = theViewer.selection ()[0]
+        print(selectedItem)
+        deleteRow = str (theViewer.item (selectedItem))
+        searchedWord = deleteRow.split ("'text':", 1)[1].split (',')[0]
+        print(searchedWord)
+        deleteRowCSV (searchedWord, path)
 
-    except ValueError:
+        theViewer.delete (selectedItem)
 
-        newWindowIM = Tk ()
-        newWindowIM.title ('Error')
-        newWindowIM.geometry ('300x300')
-        rlbl = Label (newWindowIM, text='\n Error - Integer only ')
-        rlbl.pack ()
-        vacSubmit = False
+    except IndexError:
+        allErrors ('No selection')
 
-    if vacSubmit and counter == 0:
 
-        userInputs = monthVariable.get () + '/' + dayVariable.get () + '/' + yearVariable.get ()
+def vacationViewer():
+    global vacationview
+    global vacationviewroot
 
-        increment ()
+    try:
+        if vacationviewroot.state () == 'normal':
+            vacationviewroot.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
 
-        regularHeaders = ['Name', 'Date Requested', 'Hire Date', 'Purchased Hours', 'Carried Over', 'Earned Hours',
-                          'Total Hours']
+    if not os.stat (workerVacDatePath).st_size == 0:
+        vacationviewroot = Tk ()
+        vacationviewroot.resizable (width=False, height=False)
+        vacationview = ttk.Treeview (vacationviewroot)
+        vacationview["columns"] = ("1", "2", "3", "4", "5", "6", "7")
 
-        # specificData = [userInputs, curDate, enterPurchasedHours.get(), enterCarriedHours.get(), enterEarnedHours.get(),totalHours, 'F']
+        vacationview.column ("1", width=130)
+        vacationview.column ("2", width=130)
+        vacationview.column ("3", width=130)
+        vacationview.column ("4", width=130)
+        vacationview.column ("5", width=130)
+        vacationview.column ("6", width=230)
+        vacationview.column ("7", width=230)
 
-        hourData = [enterPurchasedHours.get (), enterCarriedHours.get (), enterEarnedHours.get ()]
+        vacationview.heading ("1", text="Full Name")
+        vacationview.heading ("2", text="Date Requested")
+        vacationview.heading ("3", text="Vacation Date Requested")
+        vacationview.heading ("4", text="Day Of Week")
+        vacationview.heading ("5", text="Hours Requested")
+        vacationview.heading ("6", text="Status")
+        vacationview.heading ("7", text="Comments")
 
-        userInputLabel = Label (newRequestWindow, text=hourData)
-        userInputLabel.grid (row=7, sticky=S)
+        fifthCounter = 0
 
-        myExcelFile = open ('Test34' + str (now.month) + ' ' + str (now.year) + '.csv', 'a', newline='')
+        vsb = ttk.Scrollbar (vacationviewroot, orient="vertical", command=vacationview.yview)
+        vsb.pack (side='right', fill='y')
+
+        vacationview.configure (yscrollcommand=vsb.set)
+
+        myExcelFile = open (workerVacDatePath, 'r')
+
+        with myExcelFile as csvfile:
+
+            reader = csv.reader (csvfile, delimiter=',')
+            for row in reader:
+                fifthCounter = fifthCounter + 1
+                vacationview.insert ("", END, text=fifthCounter, values=(row))
+
+        vacationview.pack ()
+
+        delButton = Button (vacationviewroot, text="Delete Row",
+                            command=lambda: deleteRowViewer (vacationview, workerVacDatePath))
+        delButton.pack ()
+
+        vacationviewroot.mainloop ()
+
+
+    else:
+        allErrors ('-No vacation dates selected')
+
+
+def enterVacReqButton():
+    userInputs = monthVariable.get () + '/' + dayVariable.get () + '/' + yearVariable.get ()
+    tempDayOfWeek = datetime.datetime (int (yearVariable.get ()), int (monthVariable.get ()), int (dayVariable.get ()))
+    dayOfWeek = calendar.day_name[tempDayOfWeek.weekday ()]
+    reqStatus = 'Pending'
+    vacationDay = 8
+
+    loadWorkersVacationHours()
+
+    try:
+
+        hourData = [(arrayName[userIndex]), curDate, userInputs, dayOfWeek, vacationDay, reqStatus, ' ',
+                    arrayWorkYears[0]]
+        print((hourData))
+        canSubmit = True
+
+    except IndexError:
+        allErrors ('- No hours submitted')
+        canSubmit = False
+
+    if not compareInput (hourData, workerVacDatePath):
+        myExcelFile = open (workerVacDatePath, 'a', newline='')
         with myExcelFile as csvfile:
             writer = csv.writer (csvfile)
             writer.writerows ([hourData])
 
-
-    elif counter >= 1:
-        newWindowIM = Tk ()
-        newWindowIM.title ('Error')
-        newWindowIM.geometry ('300x300')
-        rlbl = Label (newWindowIM, text='\n Error - Hours already submitted ')
-        rlbl.pack ()
+    else:
+        allErrors ('- Date already added')
 
 
 def requestVacation():
-    newUserWindow.destroy ()
-
     global newRequestWindow
-    global enterCarriedHours
-    global enterEarnedHours
-    global enterPurchasedHours
     global monthVariable
     global dayVariable
     global yearVariable
-    global enterVacation
+
+    try:
+        if newRequestWindow.state () == 'normal':
+            newRequestWindow.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
 
     newRequestWindow = Tk ()
     newRequestWindow.title ('Request Vacation')
     newRequestWindow.geometry ('500x500')
-
-    newHoursEarned = Label (newRequestWindow, text='Earned Hours:  ')
-    newCarriedHours = Label (newRequestWindow, text='Hours Carried Over: ')
-    newPurchasedHours = Label (newRequestWindow, text='Hours Purchased:  ')
-
-    newHoursEarned.grid (row=1, sticky=W)
-    newCarriedHours.grid (row=2, sticky=W)
-    newPurchasedHours.grid (row=3, sticky=W)
-
-    enterEarnedHours = Entry (newRequestWindow, width=12)
-    enterCarriedHours = Entry (newRequestWindow, width=12)
-    enterPurchasedHours = Entry (newRequestWindow, width=12)
-
-    enterEarnedHours.grid (row=1, column=2)
-    enterCarriedHours.grid (row=2, column=2)
-    enterPurchasedHours.grid (row=3, column=2)
-
-    enterVacation = Button (newRequestWindow, text='Submit', command=enterVacButton)
-    enterVacation.grid (row=4, column=2, columnspan=2, sticky=W)
 
     monthFrame = Frame (newRequestWindow)
     monthFrame.grid (column=0, row=8, sticky=(N, W, E, S))
@@ -239,6 +389,9 @@ def requestVacation():
     Label (yearFrame, text="Select a year").grid (row=1, column=1)
     actualMenu.grid (row=2, column=1)
 
+    enterReqVacation = Button (newRequestWindow, text='Submit', command=enterVacReqButton)
+    enterReqVacation.grid (row=10, column=1, columnspan=2, sticky=SW)
+
     newRequestWindow.mainloop ()
 
 
@@ -247,36 +400,62 @@ def checkEmpty(emptyStr):
 
 
 def logOut():
-
-    if newAdminWindow.state () == 'normal':
-        newAdminWindow.destroy ()
+    try:
+        if newAdminWindow.state () == 'normal':
+            newAdminWindow.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
     try:
         if newUserWindow.state () == 'normal':
-         newUserWindow.destroy ()
+            newUserWindow.destroy ()
     except NameError:
         pass
     except Exception as e:
         pass
 
     try:
-         if treeroot.state () == 'normal':
+        if treeroot.state () == 'normal':
             treeroot.destroy ()
     except NameError:
         pass
     except Exception as e:
         pass
-    try:
 
-        if newWindowIM.state() == 'normal':
-            newWindowIM.destroy()
+    try:
+        if newWindowIM.state () == 'normal':
+            newWindowIM.destroy ()
     except NameError:
         pass
     except Exception as e:
         pass
 
+    try:
+        if newRequestWindow.state () == 'normal':
+            newRequestWindow.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
 
-    loadWorkers()
+    try:
+        if newVacHours.state () == 'normal':
+            newVacHours.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
 
+    try:
+        if vacationviewroot.state () == 'normal':
+            vacationviewroot.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
+
+    loadWorkers ()
     userLogin ()
 
 
@@ -285,18 +464,163 @@ def adminAccess():
     loginWindow.destroy ()
     newAdminWindow = Tk ()
     newAdminWindow.title ('Admin')
-    newAdminWindow.geometry ('150x150')
+    newAdminWindow.geometry ('600x600')
 
     createButton = Button (newAdminWindow, text='Create New User', command=createNewUser)
     createButton.grid (columnspan=2, sticky=W)
 
     viewButton = Button (newAdminWindow, text='View current users', command=viewUserButton)
-    viewButton.grid (columnspan=2, sticky=SE)
+    viewButton.grid (columnspan=2, sticky=W)
+
+    reqVacationButton = Button (newAdminWindow, text='View Requests', command=vacationViewer)
+    reqVacationButton.grid (columnspan=2, sticky=W)
+
+    sortRequestsByPriority = Button (newAdminWindow, text='Sort Req. By Priority', command=prioritySort)
+    sortRequestsByPriority.grid (columnspan=2, sticky=W)
 
     remoButton = Button (newAdminWindow, text='Log out', command=logOut)
     remoButton.grid (columnspan=2, sticky=W)
 
     newAdminWindow.mainloop ()
+
+
+def enterVacHoursButton():
+    global totalHours
+    global enterCarriedHours
+    global enterEarnedHours
+    global enterPurchasedHours
+
+    loadWorkersVacationHours ()
+
+    try:
+        totalHours = (int (enterPurchasedHours.get ()) + int (enterCarriedHours.get ()) + int (enterEarnedHours.get ()))
+
+        vacSubmit = True
+
+    except ValueError:
+
+        allErrors ('Error - Integer only')
+        vacSubmit = False
+
+    print (arrayName[userIndex])
+
+    if arrayName[userIndex] in arrayVacName:
+         vacSubmit = False
+
+    if vacSubmit:
+        hourData = [str (arrayName[userIndex]), enterPurchasedHours.get (), enterCarriedHours.get (),
+                    enterEarnedHours.get (), totalHours]
+        print(hourData)
+        myExcelFile = open (workerVacHourPath, 'a', newline='')
+        with myExcelFile as csvfile:
+            writer = csv.writer (csvfile)
+            writer.writerows ([hourData])
+
+    else:
+        newWindowIM = Tk ()
+        newWindowIM.title ('Error')
+        newWindowIM.geometry ('300x300')
+        rlbl = Label (newWindowIM, text='\n Hours already submitted ')
+        rlbl.pack ()
+
+
+def vacHours():
+    global enterCarriedHours
+    global enterEarnedHours
+    global enterPurchasedHours
+    global newVacHours
+
+    try:
+        if newVacHours.state () == 'normal':
+            newVacHours.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
+
+    newVacHours = Tk ()
+    newVacHours.title ('Enter Hours')
+    newVacHours.geometry ('500x500')
+    newHoursEarned = Label (newVacHours, text='Earned Hours:  ')
+    newCarriedHours = Label (newVacHours, text='Hours Carried Over: ')
+    newPurchasedHours = Label (newVacHours, text='Hours Purchased:  ')
+
+    newHoursEarned.grid (row=1, sticky=W)
+    newCarriedHours.grid (row=2, sticky=W)
+    newPurchasedHours.grid (row=3, sticky=W)
+
+    enterEarnedHours = Entry (newVacHours, width=12)
+    enterCarriedHours = Entry (newVacHours, width=12)
+    enterPurchasedHours = Entry (newVacHours, width=12)
+
+    enterEarnedHours.grid (row=1, column=2)
+    enterCarriedHours.grid (row=2, column=2)
+    enterPurchasedHours.grid (row=3, column=2)
+
+    enterVacation = Button (newVacHours, text='Submit', command=enterVacHoursButton)
+    enterVacation.grid (row=4, column=2, columnspan=2, sticky=W)
+
+    newVacHours.mainloop ()
+
+
+def vacationRegularViewer():
+    global vacationRV
+    global vacationRVR
+
+    try:
+        if vacationRV.state () == 'normal':
+            vacationRVR.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
+
+    if not os.stat (workerVacDatePath).st_size == 0:
+        vacationRVR = Tk ()
+        vacationRVR.resizable (width=False, height=False)
+        vacationRV = ttk.Treeview (vacationRVR)
+        vacationRV["columns"] = ("1", "2", "3", "4", "5", "6", "7")
+
+        vacationRV.column ("1", width=130)
+        vacationRV.column ("2", width=130)
+        vacationRV.column ("3", width=130)
+        vacationRV.column ("4", width=130)
+        vacationRV.column ("5", width=130)
+        vacationRV.column ("6", width=230)
+        vacationRV.column ("7", width=230)
+
+        vacationRV.heading ("1", text="Full Name")
+        vacationRV.heading ("2", text="Date Requested")
+        vacationRV.heading ("3", text="Vacation Date Requested")
+        vacationRV.heading ("4", text="Day Of Week")
+        vacationRV.heading ("5", text="Hours Requested")
+        vacationRV.heading ("6", text="Status")
+        vacationRV.heading ("7", text="Comments")
+
+        fifthCounter = 0
+
+        vsb = ttk.Scrollbar (vacationRVR, orient="vertical", command=vacationRV.yview)
+        vsb.pack (side='right', fill='y')
+
+        vacationRV.configure (yscrollcommand=vsb.set)
+
+        myExcelFile = open (workerVacDatePath, 'r')
+
+        with myExcelFile as csvfile:
+
+            reader = csv.reader (csvfile, delimiter=',')
+            for row in reader:
+                if arrayName[userIndex] in row:
+                    fifthCounter = fifthCounter + 1
+                    vacationRV.insert ("", END, text=fifthCounter, values=(row))
+
+        vacationRV.pack ()
+
+        delButton = Button (vacationRVR, text="Delete Row",
+                            command=lambda: deleteRowViewer (vacationRV, workerVacDatePath))
+        delButton.pack ()
+
+        vacationRVR.mainloop ()
 
 
 def regularAccess():
@@ -306,60 +630,55 @@ def regularAccess():
     newUserWindow.title ('Vacation Req')
     newUserWindow.geometry ('350x350')
 
-    createButton = Button (newUserWindow, text='Request Vacation', command=requestVacation)
-    createButton.grid (columnspan=2, sticky=W)
+    enterVacationHours = Button (newUserWindow, text='Enter Vacation Hours', command=vacHours)
+    enterVacationHours.grid (columnspan=2, sticky=W)
+
+    reqVacationButton = Button (newUserWindow, text='Request Vacation', command=requestVacation)
+    reqVacationButton.grid (columnspan=2, sticky=W)
+
+    reqVacationButton = Button (newUserWindow, text='View Requests', command=vacationRegularViewer)
+    reqVacationButton.grid (columnspan=2, sticky=W)
+
+    logOutButton = Button (newUserWindow, text='Logout', command=logOut)
+    logOutButton.grid (columnspan=2, sticky=W)
 
     newUserWindow.mainloop ()
 
 
-def CheckLogin():
+def checkLogin():
+    global userIndex
+
     if entryName.get () == "mo" and entryPassword.get () == "pass":
         adminAccess ()
-    elif entryName.get() in arraySLID and entryPassword.get() in arrayPassword:
-        regularAccess ()
-    elif checkEmpty (entryName.get ()) or checkEmpty (entryPassword.get ()):
-        allErrors ('Invalid Login')
+    elif entryName.get () in arraySLID and entryPassword.get () in arrayPassword:
+        userIndex = (arraySLID.index (entryName.get ()))
+        print(userIndex)
 
+        if entryName.get() == arraySLID[userIndex] and entryPassword.get() == arrayPassword[userIndex]:
+            regularAccess ()
+        elif checkEmpty (entryName.get ()) or checkEmpty (entryPassword.get ()):
+            allErrors ('Invalid Login')
     else:
-        allErrors('Invalid Login')
+        allErrors ('Invalid Login')
 
 
 def hasNumbers(inputString):
     return any (char.isdigit () for char in inputString)
 
 
-def deleteRowCSV(deletedRow):
-    copyfile ('Workers ' + curMonth + ' ' + curYear + '.csv', 'Workers Copy' + curMonth + ' ' + curYear + '.csv')
+def deleteRowCSV(deletedRow, path):
+    loadBlankFiles ()
+    myExcelFile = open ('Temporary' + path, 'a', newline='')
+    copyfile (path, 'Temporary' + path)
 
     firstRowNum = 1
     rowToDelete = {int (deletedRow)}
 
-    with open ('Workers Copy' + curMonth + ' ' + curYear + '.csv', 'rt') as infile, open (
-            'Workers ' + curMonth + ' ' + curYear + '.csv', 'wt') as outfile:
+    with open ('Temporary' + path, 'rt') as infile, open (
+            path, 'wt') as outfile:
         outfile.writelines (row for row_num, row in enumerate (infile, firstRowNum) if row_num not in rowToDelete)
 
-    os.remove ('Workers Copy' + curMonth + ' ' + curYear + '.csv')
-
-
-def deleteTreeView():
-    global deleteRow
-
-    try:
-
-        selectedItem = treeview.selection ()[0]
-        deleteRow = str (treeview.item (selectedItem))
-        searchedWord = deleteRow.split ("'text':", 1)[1].split (',')[0]
-
-        deleteRowCSV (searchedWord)
-        treeview.delete (selectedItem)
-
-
-
-
-
-    except IndexError:
-
-        allErrors('No selection')
+    #os.remove ('Temporary' + path)
 
 
 def viewUserButton():
@@ -374,7 +693,7 @@ def viewUserButton():
     except Exception as e:
         pass
 
-    if not os.stat ('Workers ' + curMonth + ' ' + curYear + '.csv').st_size == 0:
+    if not os.stat (workerPath).st_size == 0:
         treeroot = Tk ()
         treeroot.resizable (width=False, height=False)
         treeview = ttk.Treeview (treeroot)
@@ -399,11 +718,9 @@ def viewUserButton():
 
         treeview.configure (yscrollcommand=vsb.set)
 
-        myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'r')
+        myExcelFile = open (workerPath, 'r')
 
         with myExcelFile as csvfile:
-            df1 = pd.read_csv (
-                'C:\\Users\\SXM037W\\PycharmProjects\\untitled\\' + 'Workers ' + curMonth + ' ' + curYear + '.csv')
             reader = csv.reader (csvfile, delimiter=',')
             for row in reader:
                 fourthCounter = fourthCounter + 1
@@ -411,36 +728,45 @@ def viewUserButton():
 
         treeview.pack ()
 
-        delButton = Button (treeroot, text="Delete Row", command=deleteTreeView)
+        delButton = Button (treeroot, text="Delete Row", command=lambda: deleteRowViewer (treeview, workerPath))
         delButton.pack ()
 
         treeroot.mainloop ()
 
     else:
-        allErrors('No uSSers listed')
+        allErrors ('No users listed')
+
 
 def allErrors(errorMessage):
-
     global newWindowIM
+    try:
+        if newWindowIM.state () == 'normal':
+            newWindowIM.destroy ()
+    except NameError:
+        pass
+    except Exception as e:
+        pass
+
     newWindowIM = Tk ()
     newWindowIM.title ('Error')
     newWindowIM.geometry ('300x300')
-    rlbl = Label (newWindowIM, text='\n Error ' + errorMessage )
+    rlbl = Label (newWindowIM, text='\n Error ' + errorMessage)
     rlbl.pack ()
-    newWindowIM.mainloop()
+    newWindowIM.mainloop ()
+
 
 def submitButton():
     global workingYears
     global specificData
 
-    if not enterFN.get().isalpha():
-        allErrors('- Enter Alphabetical Values for first name')
+    if not enterFN.get ().isalpha ():
+        allErrors ('- Enter Alphabetical Values for first name')
         canSubmit = False
     else:
         canSubmit = True
 
-    if not enterLN.get().isalpha():
-        allErrors('Alphabetical Values for last name')
+    if not enterLN.get ().isalpha ():
+        allErrors ('- Enter Alphabetical Values for last name')
         canSubmit = False
     else:
         canSubmit = True
@@ -454,13 +780,18 @@ def submitButton():
 
     except ValueError:
 
-        allErrors('Incorrect date format or values')
+        allErrors ('Incorrect date format or values')
         canSubmit = False
 
     except:
 
-        allErrors('Incorrect date entry')
+        allErrors ('Incorrect date entry')
         canSubmit = False
+
+    if duplicateSLID (enterSLID.get (), workerPath):
+        canSubmit = False
+    else:
+        canSubmit = True
 
     if canSubmit:
 
@@ -476,7 +807,8 @@ def submitButton():
             hireDate = stringHD[0:10]
 
         specificData = [usersName, hireDate, str (workingYears), enterSLID.get ().upper (), enterPW.get ()]
-        if not compareInput (specificData):
+
+        if not compareInput (specificData, workerPath):
 
             enterFN.delete (0, END)
             enterLN.delete (0, END)
@@ -485,15 +817,18 @@ def submitButton():
             enterPW.delete (0, END)
             userInputLabel = Label (newUserWindow, text=usersName + ' successfully added.')
             userInputLabel.grid (row=8, sticky=S)
-            myExcelFile = open ('Workers ' + curMonth + ' ' + curYear + '.csv', 'a', newline='')
+            myExcelFile = open (workerPath, 'a', newline='')
             with myExcelFile as csvfile:
                 writer = csv.writer (csvfile)
                 writer.writerows ([specificData])
-
-
         else:
             userInputLabel = Label (newUserWindow, text=usersName + ' not added - Duplicate.')
             userInputLabel.grid (row=8, sticky=S)
+
+
+    elif canSubmit == False and duplicateSLID (enterSLID.get (), workerPath) == True:
+        userInputLabel = Label (newUserWindow, text='Not added -  SLID duplicate.')
+        userInputLabel.grid (row=8, sticky=S)
 
 
 def createNewUser():
@@ -537,8 +872,10 @@ def createNewUser():
 
     newUserWindow.mainloop ()
 
-loadWorkers()
+loadBlankFiles ()
+loadWorkers ()
 userLogin ()
+
 
 
         
