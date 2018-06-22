@@ -228,6 +228,20 @@ def deleteRowViewer(theViewer, path):
         allErrors ('No selection')
 
 
+def swapRowViewer(theViewer, path):
+    global deleteRow
+
+    try:
+        selectedItem = theViewer.selection ()[0]
+        deleteRow = str (theViewer.item (selectedItem))
+        searchedWord = deleteRow.split ("'text':", 1)[1].split (',')[0]
+        print(searchedWord)
+        deleteRowCSV (searchedWord, path)
+        theViewer.delete (selectedItem)
+
+    except IndexError:
+        allErrors ('No selection')
+
 def treeview_sort_column(tv, col, reverse):
     l = [(tv.set(k, col), k) for k in tv.get_children('')]
     l.sort(reverse=reverse)
@@ -289,7 +303,7 @@ def vacationViewer():
 
         swapButton = Button (vacationviewroot, text="Change date",
                             command=lambda: deleteRowViewer (vacationview, workerVacDatePath))
-        delButton.pack ()
+        swapButton.pack ()
 
 
         vacationviewroot.mainloop ()
@@ -497,10 +511,6 @@ def adminAccess():
     sortRequestsByPriority = Button (newAdminWindow, text='Sort Req. By Priority', command=prioritySort)
     sortRequestsByPriority.grid (columnspan=2, sticky=W)
 
-
-    reqDateChange = Button (newAdminWindow, text='Request date change', command=approvedDateChange)
-    reqDateChange.grid (columnspan=2, sticky=W)
-
     remoButton = Button (newAdminWindow, text='Log out', command=logOut)
     remoButton.grid (columnspan=2, sticky=W)
 
@@ -659,6 +669,9 @@ def vacationRegularViewer():
             delButton = Button (vacationRVR, text="Delete Row",
                                 command=lambda: deleteRowViewer (vacationRV, workerVacDatePath))
             delButton.pack ()
+
+            reqDateChange = Button (vacationRVR, text='Request date change', command=lambda: swapRowViewer (vacationRV, workerVacDatePath))
+            reqDateChange.pack()
 
             if not hoursBool:
                 userInputLabel = Label (vacationRVR, text= str(remainingHours) + ' hours remaining.')
@@ -936,6 +949,7 @@ def createNewUser():
 loadBlankFiles ()
 loadWorkers ()
 userLogin ()
+
 
         
 
